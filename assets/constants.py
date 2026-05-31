@@ -18,6 +18,7 @@ AGENT_INSTALL_COMMANDS = {
         "  uv pip install -e ./software-agent-sdk/openhands-tools\n"
     ),
     "codex": (
+        "  curl -L https://github.com/BurntSushi/ripgrep/releases/download/14.1.1/ripgrep-14.1.1-x86_64-unknown-linux-musl.tar.gz -o rg.tar.gz && tar -xzf rg.tar.gz && mv ripgrep-14.1.1-x86_64-unknown-linux-musl/rg /usr/local/bin/rg && chmod +x /usr/local/bin/rg 2>/dev/null || true\n"
         "  curl -L \\\"https://github.com/openai/codex/releases/download/rust-v0.64.0/codex-x86_64-unknown-linux-musl.tar.gz\\\" -o codex.tar.gz\n"
         "  tar -xzf codex.tar.gz\n"
         "  mv codex-x86_64-unknown-linux-musl codex\n"

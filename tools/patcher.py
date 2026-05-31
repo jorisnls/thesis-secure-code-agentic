@@ -208,7 +208,7 @@ class AgentPatcher(BasePatcher):
 
         uid = os.getuid()
         env_vars = {
-            "MAKEFLAGS": "-j8",
+            "MAKEFLAGS": "-j2",
             "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
             "ANTHROPIC_API_KEY": os.getenv("ANTHROPIC_API_KEY"),
             "GEMINI_API_KEY": os.getenv("GEMINI_API_KEY"),
@@ -235,7 +235,7 @@ class AgentPatcher(BasePatcher):
             "#!/bin/bash\n"
             "docker run --rm --init "
             f"--name {container_id} "
-            "--cpus=8 "
+            "--cpus=2 "
             f"{env_flags} "
             f"{volume_flags} "
             f"secrepobench:{id} /bin/sh -c \"\n"
@@ -246,9 +246,10 @@ class AgentPatcher(BasePatcher):
             "  export PATH=/tmp:$PATH\n"
             # install agent dependencies
             "  cp -r /harnesses/* /workdir\n"
-            f"  GIT_DIR=\\$(find /src -type d -iname '{project_name}' | head -n 1)\n"
+            f"  GIT_DIR=\\$(find /src -type d -iname '*{project_name}*' | head -n 1)\n"
             "  cd /workdir\n"
-            "  . /root/.local/bin/env\n"
+            "  curl -LsSf https://astral.sh/uv/install.sh | sh\n"
+            "  export PATH=/root/.local/bin:$PATH\n"
             "  uv python install 3.12\n"
             "  uv venv --python 3.12\n"
             f"{install_cmd}"

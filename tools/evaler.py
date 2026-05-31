@@ -58,8 +58,8 @@ def setup(id, agent, project_name, changed_file, fixing_commit, model_name, cont
         f"#!/bin/bash\n"
         "docker run --rm --init "
         f"--name {id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_testcase "
-        "--cpus=8 "
-        "-e MAKEFLAGS=\"-j8\" "
+        "--cpus=2 "
+        "-e MAKEFLAGS=\"-j2\" "
         f"-v {base_dir}/data/{id}/patches:/patches "
         f"n132/arvo:{id}-fix /bin/sh -c \"\n"
         # limit num processes to 8 by changing nproc behavior
@@ -113,8 +113,8 @@ def setup(id, agent, project_name, changed_file, fixing_commit, model_name, cont
         f"#!/bin/bash\n"
         "docker run --rm --init "
         f"--name {id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_unittest "
-        "--cpus=8 "
-        "-e MAKEFLAGS=\"-j8\" "
+        "--cpus=2 "
+        "-e MAKEFLAGS=\"-j2\" "
         f"-v {base_dir}/data/{id}/patches:/patches "
         f"n132/arvo:{id}-fix /bin/sh -c \"\n"
         # limit num processes to 8 by changing nproc behavior

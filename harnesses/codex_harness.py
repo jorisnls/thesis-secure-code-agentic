@@ -63,10 +63,10 @@ class CodexRunner:
               
         run_cmd = [
             "codex",
-            "--ask-for-approval", "never",
             "exec",
+            "--dangerously-bypass-approvals-and-sandbox",
             "--model", self.model_name,
-            "--config", 'model_reasoning_effort="medium"',
+            "-c", 'model_reasoning_effort="medium"',
             "--cd", repo_folder,
             "--sandbox", "workspace-write",
             prompt,
