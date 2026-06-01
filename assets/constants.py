@@ -154,13 +154,14 @@ OPENAI_RESPONSE_MODELS = [
 
 CLAUDE_NO_REASONING_MODELS = [
     'claude-3-5-sonnet-20240620',
-    'claude-3-haiku-20240307'
+    'claude-3-haiku-20240307',
 ]
 
 CLAUDE_REASONING_MODELS = [
     'claude-sonnet-4-5-20250929',
     'claude-sonnet-4-20250514',
     'claude-3-7-sonnet-20250219',
+    'claude-sonnet-4-6',
 ]
 
 GEMINI_NO_REASONING_MODELS = [
@@ -219,6 +220,7 @@ API_MODEL_NAMES = {
     'claude-3.7-sonnet': 'claude-3-7-sonnet-20250219',
     'claude-3.5-sonnet': 'claude-3-5-sonnet-20240620',
     'claude-3-haiku': 'claude-3-haiku-20240307',
+    'claude-sonnet-4-6': 'claude-sonnet-4-6',
 
     # gemini
     'gemini-3-pro': 'gemini-3-pro-preview',
@@ -263,6 +265,7 @@ MODELS = {
     'claude-3.7-sonnet': 'claude-3-7-sonnet-20250219',
     'claude-3.5-sonnet': 'claude-3-5-sonnet-20240620',
     'claude-3-haiku': 'claude-3-haiku-20240307',
+    'claude-sonnet-4-6': 'claude-sonnet-4-6',
 
     # gemini
     'gemini-3-pro': 'gemini-3-pro-preview',
