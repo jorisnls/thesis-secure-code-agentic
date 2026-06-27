@@ -17,4 +17,11 @@ logs/
 inference_data/
 report_eval*
 report.json
+report.json.gz
 sample_metadata.json
+sample_metadata.json.gz
+sast_tools/
+sast_results/
+selected_tasks.json
+assets/ids.txt
+assets/ids_backup.txt

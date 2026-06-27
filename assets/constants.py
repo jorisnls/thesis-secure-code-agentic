@@ -144,7 +144,8 @@ OPENAI_REASONING_MODELS = [
     'o4-mini-2025-04-16',
     'o3-2025-04-16',
     'o3-mini-2025-01-31',
-    'o1-2024-12-17'
+    'o1-2024-12-17',
+    'gpt-5.4-mini'
 ]
 
 OPENAI_RESPONSE_MODELS = [
@@ -213,6 +214,7 @@ API_MODEL_NAMES = {
     'o1': 'o1-2024-12-17',
     'gpt-oss-120b': 'gpt-oss-120b',
     'gpt-5.1-codex-max': 'gpt-5.1-codex-max',
+    'gpt-5.4-mini': 'gpt-5.4-mini',
 
     # claude
     'claude-sonnet-4-5': 'claude-sonnet-4-5-20250929',
@@ -258,6 +260,7 @@ MODELS = {
     'o1': 'o1-2024-12-17',
     'gpt-oss-120b': 'gpt-oss-120b',
     'gpt-5.1-codex-max': 'gpt-5.1-codex-max',
+    'gpt-5.4-mini': 'gpt-5.4-mini',
 
     # claude
     'claude-sonnet-4-5': 'claude-sonnet-4-5-20250929',

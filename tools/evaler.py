@@ -51,6 +51,8 @@ def setup(id, agent, project_name, changed_file, fixing_commit, model_name, cont
         f"testcase_{agent}_{model_name}_filled_code_{context_type}_{prompt_type}_{mode}.sh"
     unittest_file = directory / \
         f"unittest_{agent}_{model_name}_filled_code_{context_type}_{prompt_type}_{mode}.sh"
+    codeql_file = directory / \
+        f"codeql_{agent}_{model_name}_filled_code_{context_type}_{prompt_type}_{mode}.sh"
     patch_file_name = f"patch_{agent}_{model_name}_filled_code_{context_type}_{prompt_type}_{mode}.txt"
 
     # write testcase, unittest bash scripts
@@ -68,7 +70,7 @@ def setup(id, agent, project_name, changed_file, fixing_commit, model_name, cont
         "  chmod +x /tmp/nproc\n"
         "  export PATH=/tmp:\\$PATH\n"
         # revert to fixing commit and stash changes as necessary
-        f"  GIT_DIR=\\$(find /src -type d -iname '{project_name}' | head -n 1)\n"
+        f"  GIT_DIR=\\$(find /src -maxdepth 1 -type d -iname '{project_name}' | head -n 1)\n"
         "  git -C \\$GIT_DIR config --global user.email \\\"anonymous@email.com\\\"\n"
         "  if [ -n \\\"\\$(git -C \\$GIT_DIR status --porcelain)\\\" ]; then\n"
         "    git -C \\$GIT_DIR stash save --include-untracked \\\"Saving my changes\\\"\n"
@@ -123,7 +125,7 @@ def setup(id, agent, project_name, changed_file, fixing_commit, model_name, cont
         "  chmod +x /tmp/nproc\n"
         "  export PATH=/tmp:\\$PATH\n"
         # revert to fixing commit and stash changes as necessary
-        f"  GIT_DIR=\\$(find /src -type d -iname '{project_name}' | head -n 1)\n"
+        f"  GIT_DIR=\\$(find /src -maxdepth 1 -type d -iname '{project_name}' | head -n 1)\n"
         "  git -C \\$GIT_DIR config --global user.email \\\"anonymous@email.com\\\"\n"
         "  if [ -n \\\"\\$(git -C \\$GIT_DIR status --porcelain)\\\" ]; then\n"
         "    git -C \\$GIT_DIR stash save --include-untracked \\\"Saving my changes\\\"\n"
@@ -143,11 +145,53 @@ def setup(id, agent, project_name, changed_file, fixing_commit, model_name, cont
         "  \""
     )
 
+    # CodeQL SAST: SARIF landet im gemounteten /patches und kommt so raus
+    sarif_name = f"codeql_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}.sarif"
+    codeql_dir = os.path.join(base_dir, "sast_tools", "codeql")
+
+    codeql_content = (
+        f"#!/bin/bash\n"
+        "docker run --rm --init "
+        f"--name {id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_codeql "
+        "--cpus=2 "
+        "-e MAKEFLAGS=\"-j2\" "
+        "-e CODEQL_ALLOW_INSTALLATION_ANYWHERE=true "
+        f"-v {base_dir}/data/{id}/patches:/patches "
+        f"-v {codeql_dir}:/codeql "
+        f"n132/arvo:{id}-fix /bin/bash -c \"\n"
+        "  echo '#!/bin/sh' > /tmp/nproc\n"
+        "  echo 'echo 2' >> /tmp/nproc\n"
+        "  chmod +x /tmp/nproc\n"
+        "  export PATH=/codeql:/tmp:\\$PATH\n"
+        f"  GIT_DIR=\\$(find /src -maxdepth 1 -type d -iname '{project_name}' | head -n 1)\n"
+        "  if [ -z \\\"\\$GIT_DIR\\\" ]; then echo 'FATAL: project dir not found'; exit 1; fi\n"
+        "  git -C \\$GIT_DIR config --global user.email \\\"anonymous@email.com\\\"\n"
+        "  if [ -n \\\"\\$(git -C \\$GIT_DIR status --porcelain)\\\" ]; then\n"
+        "    git -C \\$GIT_DIR stash save --include-untracked \\\"Saving my changes\\\"\n"
+        "    CHANGES_STASHED=true\n"
+        "  else\n"
+        "    CHANGES_STASHED=false\n"
+        "  fi\n"
+        f"  git -C \\$GIT_DIR checkout {fixing_commit}\n"
+        "  if [ \\\"\\$CHANGES_STASHED\\\" = true ]; then\n"
+        "    git -C \\$GIT_DIR stash apply\n"
+        "  fi\n"
+        f"  cp -f /patches/{patch_file_name} \\$GIT_DIR/{changed_file}\n"
+        "  cd /src\n"
+        "  codeql database create /tmp/cqdb --language=cpp --command='bash -c \\\"arvo compile || true\\\"' --overwrite\n"
+        "  codeql database analyze /tmp/cqdb cpp-security-extended.qls "
+        f"--format=sarifv2.1.0 --output=/patches/{sarif_name} --threads=2\n"
+        "  \""
+    )
+
     with open(testcase_file, 'w') as f:
         f.write(testcase_content)
 
     with open(unittest_file, 'w') as f:
         f.write(unittest_content)
+
+    with open(codeql_file, 'w') as f:
+        f.write(codeql_content)
 
     patch_file = patch_dir / patch_file_name
     with open(patch_file, 'w') as f:
@@ -412,6 +456,49 @@ def parse_unittest(output, project_name):
     return result
 
 
+def parse_codeql(id, agent, model_name, context_type, prompt_type, mode):
+    """Liest die von CodeQL erzeugte SARIF-Datei (in data/<id>/patches/) und
+    aggregiert die Findings. Separate Auswertung (Option A) - beeinflusst den
+    dynamischen testcase-Verdict NICHT."""
+    sarif_name = f"codeql_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}.sarif"
+    sarif_path = Path("data") / str(id) / "patches" / sarif_name
+
+    if not sarif_path.exists():
+        return "error: no sarif produced"
+
+    try:
+        with open(sarif_path) as f:
+            data = json.load(f)
+    except Exception as e:
+        return f"error: sarif parse failed ({e})"
+
+    from collections import Counter as _Counter
+    rules = _Counter()
+    in_changed = 0
+    try:
+        with open("sample_metadata.json") as _mf:
+            changed_file = json.load(_mf)[str(id)]["changed_file"]
+    except Exception:
+        changed_file = ""
+    cf = (changed_file or "").split("/")[-1]
+    for run in data.get("runs", []):
+        for res in run.get("results", []):
+            rule = res.get("ruleId", "unknown")
+            rules[rule] += 1
+            try:
+                uri = res["locations"][0]["physicalLocation"]["artifactLocation"]["uri"]
+                if cf and cf in uri:
+                    in_changed += 1
+            except Exception:
+                pass
+
+    return {
+        "findings": int(sum(rules.values())),
+        "rules": dict(rules),
+        "in_changed_file": int(in_changed),
+    }
+
+
 def parse_output(output, project_name, report):
     id, agent, model_name, context_type, prompt_type, test_type, mode, proc_data = output
 
@@ -428,6 +515,10 @@ def parse_output(output, project_name, report):
                 (id, 'sec', test_type, type('Proc', (), proc_data)()), project_name)
         except ParseException as e:
             result = "error: " + str(e)
+
+    elif test_type == "codeql":
+        result = parse_codeql(id, agent, model_name, context_type,
+                              prompt_type, mode)
 
     report[id][agent][model_name][context_type][prompt_type][mode][test_type] = result
 
@@ -589,7 +680,7 @@ def get_remaining(targets, completed):
 
 def eval(ids, agents, model_names, prompt_types, context_types, modes, rerun, num_workers):
     # consider exposing
-    tests = ['testcase', 'unittest']
+    tests = ['testcase', 'unittest', 'codeql']
 
     # get targes
     targets = get_targets(ids, agents, model_names,
