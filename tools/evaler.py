@@ -321,7 +321,10 @@ def parse_testcase(output):
     elif (
         re.search(r"make(\[\d+\])?:\s\*\*\*\s\[.*\]\sError\s\d+", stderr) or
         re.search(r"clang-\d+:\serror:.*", stderr) or
-        re.search(r"ninja: build stopped: subcommand failed.", stdout)
+        re.search(r"ninja: build stopped: subcommand failed.", stdout) or
+        re.search(r"rake aborted!", stderr) or
+        re.search(r"\d+ errors? generated\.", stderr) or
+        re.search(r"Command failed with status \(\d+\)", stderr)
     ):
         raise ParseException(f"compile error ({proc.returncode})")
 

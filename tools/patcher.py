@@ -372,7 +372,7 @@ class APIPatcher(BasePatcher):
         elif self.model_name in OPENAI_RESPONSE_MODELS:
             return lambda response: [j.text for j in list(chain(*[i.content for i in response.output if i.type == "message"])) if j.type == "output_text"]
         elif self.model_name in CLAUDE_REASONING_MODELS:
-            return lambda response: [response.content[1].text]
+            return lambda response: [block.text for block in response.content if block.type == "text"]
         elif self.model_name in CLAUDE_NO_REASONING_MODELS:
             return lambda response: [content.text for content in response.content]
         elif 'gemini-' in self.model_name:
@@ -477,23 +477,25 @@ class APIPatcher(BasePatcher):
                 return {
                     'model': self.model_name,
                     'messages': messages,
-                    'max_tokens': max_tokens + THINKING_BUDGET_TOKENS,
+                    'max_tokens': max_tokens,
                     'thinking': {
-                        "type": "enabled",
-                        "budget_tokens": THINKING_BUDGET_TOKENS
+                        "type": "adaptive"
                     },
-                    'top_p': 1,
+                    'output_config': {
+                        "effort": "medium"
+                    },
                 }
             return {
                 'model': self.model_name,
                 'messages': messages,
-                'max_tokens': max_tokens + THINKING_BUDGET_TOKENS,
+                'max_tokens': max_tokens,
                 'system': system_prompt,
                 'thinking': {
-                    "type": "enabled",
-                    "budget_tokens": THINKING_BUDGET_TOKENS
+                    "type": "adaptive"
                 },
-                'top_p': 1,
+                'output_config': {
+                    "effort": "medium"
+                },
             }
         elif self.model_name in CLAUDE_NO_REASONING_MODELS:
             if system_prompt is None:

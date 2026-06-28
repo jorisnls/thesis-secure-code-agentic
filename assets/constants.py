@@ -145,7 +145,8 @@ OPENAI_REASONING_MODELS = [
     'o3-2025-04-16',
     'o3-mini-2025-01-31',
     'o1-2024-12-17',
-    'gpt-5.4-mini'
+    'gpt-5.4-mini',
+    'gpt-5.5-2026-04-23'
 ]
 
 OPENAI_RESPONSE_MODELS = [
@@ -163,6 +164,7 @@ CLAUDE_REASONING_MODELS = [
     'claude-sonnet-4-20250514',
     'claude-3-7-sonnet-20250219',
     'claude-sonnet-4-6',
+    'claude-opus-4-8',
 ]
 
 GEMINI_NO_REASONING_MODELS = [
@@ -215,6 +217,7 @@ API_MODEL_NAMES = {
     'gpt-oss-120b': 'gpt-oss-120b',
     'gpt-5.1-codex-max': 'gpt-5.1-codex-max',
     'gpt-5.4-mini': 'gpt-5.4-mini',
+    'gpt-5.5': 'gpt-5.5-2026-04-23',
 
     # claude
     'claude-sonnet-4-5': 'claude-sonnet-4-5-20250929',
@@ -223,6 +226,7 @@ API_MODEL_NAMES = {
     'claude-3.5-sonnet': 'claude-3-5-sonnet-20240620',
     'claude-3-haiku': 'claude-3-haiku-20240307',
     'claude-sonnet-4-6': 'claude-sonnet-4-6',
+    'claude-opus-4-8': 'claude-opus-4-8',
 
     # gemini
     'gemini-3-pro': 'gemini-3-pro-preview',
@@ -261,6 +265,7 @@ MODELS = {
     'gpt-oss-120b': 'gpt-oss-120b',
     'gpt-5.1-codex-max': 'gpt-5.1-codex-max',
     'gpt-5.4-mini': 'gpt-5.4-mini',
+    'gpt-5.5': 'gpt-5.5-2026-04-23',
 
     # claude
     'claude-sonnet-4-5': 'claude-sonnet-4-5-20250929',
@@ -269,6 +274,7 @@ MODELS = {
     'claude-3.5-sonnet': 'claude-3-5-sonnet-20240620',
     'claude-3-haiku': 'claude-3-haiku-20240307',
     'claude-sonnet-4-6': 'claude-sonnet-4-6',
+    'claude-opus-4-8': 'claude-opus-4-8',
 
     # gemini
     'gemini-3-pro': 'gemini-3-pro-preview',
