@@ -180,7 +180,7 @@ def setup(id, agent, project_name, changed_file, fixing_commit, model_name, cont
         "  cd /src\n"
         "  codeql database create /tmp/cqdb --language=cpp --command='bash -c \\\"arvo compile || true\\\"' --overwrite\n"
         "  codeql database analyze /tmp/cqdb cpp-security-extended.qls "
-        f"--format=sarifv2.1.0 --output=/patches/{sarif_name} --threads=2\n"
+        f"--format=sarifv2.1.0 --output=/patches/{sarif_name} --ram=4000 --threads=2\n"
         "  \""
     )
 
